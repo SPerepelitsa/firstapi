@@ -14,8 +14,9 @@ class PagesController extends Controller
     {
         $userData = [];
         if (Auth::check()) {
-            $s = new StatService();
-            $userData = $s->getUserData($request);
+            $s = new StatService($request);
+            $userData = $s->getUserData();
+            $s->saveUserData();
         }
 
         return view('pages/firstpage')->with('userData', $userData);
