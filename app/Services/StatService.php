@@ -18,7 +18,7 @@ class StatService
 
     public function __construct()
     {
-        $this->userIp = getIpAddress();
+        $this->userIp = $this->getIpAddress();
         $this->userAgent = $this->getUserAgentData();
         $this->position = $this->getUserLocation($this->userIp);
         $this->userData = $this->getUserData();
