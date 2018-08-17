@@ -16,12 +16,23 @@ class StatService
     public $position;
     private $userData;
 
-    public function __construct(Request $request)
+    public function __construct()
     {
-        $this->userIp = $request->ip();
+        $this->userIp = getIpAddress();
         $this->userAgent = $this->getUserAgentData();
         $this->position = $this->getUserLocation($this->userIp);
         $this->userData = $this->getUserData();
+    }
+
+    function getIpAddress() 
+    {
+        if (isset($_SERVER['HTTP_X_FORWARDED_FOR'])) {
+            $ipAddresses = explode(',', $_SERVER['HTTP_X_FORWARDED_FOR']);
+            return trim(end($ipAddresses));
+        }
+        else {
+            return $_SERVER['REMOTE_ADDR'];
+        }
     }
 
     public function getUserLocation($ip)

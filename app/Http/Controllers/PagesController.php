@@ -10,11 +10,11 @@ use Stevebauman\Location\Facades\Location;
 
 class PagesController extends Controller
 {
-    public function showFirstPage(Request $request)
+    public function showFirstPage()
     {
         $userData = [];
         if (Auth::check()) {
-            $s = new StatService($request);
+            $s = new StatService();
             $userData = $s->getUserData();
             $s->saveUserData();
         }
