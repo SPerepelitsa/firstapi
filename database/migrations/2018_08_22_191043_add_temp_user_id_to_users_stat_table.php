@@ -14,7 +14,7 @@ class AddTempUserIdToUsersStatTable extends Migration
     public function up()
     {
         Schema::table('users_stat', function (Blueprint $table) {
-            $table->unsignedInteger('temp_user_id')->nullable()->after('user_id');
+            $table->uuid('temp_user_id')->nullable()->after('user_id');
         });
     }
 
