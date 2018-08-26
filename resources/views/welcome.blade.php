@@ -88,7 +88,7 @@
 
             <div class="content">
                 <div class="title m-b-md">
-                    Hello Anna!
+                    Hello World!
                     <br>
                     <a href="{{url('/firstpage')}}" class="btn btn-info btn-lg">First</a>
                 </div>

@@ -11,13 +11,15 @@ use Auth;
 
 class StatService
 {
+    private $userId;
     private $userIp;
     public $userAgent;
     public $position;
     private $userData;
 
-    public function __construct()
+    public function __construct($userId)
     {
+        $this->userId = $userId; 
         $this->userIp = $this->getIpAddress();
         $this->userAgent = $this->getUserAgentData();
         $this->position = $this->getUserLocation($this->userIp);
@@ -92,7 +94,13 @@ class StatService
     {
         $userData = $this->userData;
         $userStat = new UserStat();
-        $userStat->user_id = Auth::id();
+        if (Auth::check()) {
+            $userStat->user_id = $this->userId;
+            $userStat->temp_user_id = null;
+        } else {
+            $userStat->user_id = null;
+            $userStat->temp_user_id = $this->userId;
+        }
         $userStat->ip = $userData['ip'];
         $userStat->country_code = $userData['country_code'];
         $userStat->region_name = $userData['region_name'];
