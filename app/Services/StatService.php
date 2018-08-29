@@ -11,28 +11,26 @@ use Auth;
 
 class StatService
 {
-    private $userId;
     private $userIp;
     public $userAgent;
     public $position;
     private $userData;
 
-    public function __construct($userId)
+    public function __construct()
     {
-        $this->userId = $userId; 
         $this->userIp = $this->getIpAddress();
         $this->userAgent = $this->getUserAgentData();
         $this->position = $this->getUserLocation($this->userIp);
         $this->userData = $this->getUserData();
     }
 
-   public function getIpAddress()
+    public function getIpAddress()
     {
         if (isset($_SERVER['HTTP_X_FORWARDED_FOR'])) {
             $ipAddresses = explode(',', $_SERVER['HTTP_X_FORWARDED_FOR']);
+
             return trim(end($ipAddresses));
-        }
-        else {
+        } else {
             return $_SERVER['REMOTE_ADDR'];
         }
     }
@@ -90,17 +88,12 @@ class StatService
         return $userData;
     }
 
-    public function saveUserData()
+    public function saveUserData($userId)
     {
         $userData = $this->userData;
         $userStat = new UserStat();
-        if (Auth::check()) {
-            $userStat->user_id = $this->userId;
-            $userStat->temp_user_id = null;
-        } else {
-            $userStat->user_id = null;
-            $userStat->temp_user_id = $this->userId;
-        }
+        $userStat->user_id = $userId;
+        $userStat->temp_user_id = null;
         $userStat->ip = $userData['ip'];
         $userStat->country_code = $userData['country_code'];
         $userStat->region_name = $userData['region_name'];
@@ -112,6 +105,26 @@ class StatService
         $userStat->previous_page = $userData['previous_page'];
         $userStat->visited_at = $userData['visited_at'];
 
-        return $userStat->save();
+        return $userStat->save() ? $userData : null;
+    }
+
+    public function saveTempUserData($tempUserId)
+    {
+        $userData = $this->userData;
+        $userStat = new UserStat();
+        $userStat->user_id = null;
+        $userStat->temp_user_id = $tempUserId;
+        $userStat->ip = $userData['ip'];
+        $userStat->country_code = $userData['country_code'];
+        $userStat->region_name = $userData['region_name'];
+        $userStat->city_name = $userData['city_name'];
+        $userStat->browser = $userData['browser'];
+        $userStat->browser_version = $userData['browser_version'];
+        $userStat->os = $userData['os'];
+        $userStat->os_version = $userData['os_version'];
+        $userStat->previous_page = $userData['previous_page'];
+        $userStat->visited_at = $userData['visited_at'];
+
+        return $userStat->save() ? $userData : null;
     }
 }
