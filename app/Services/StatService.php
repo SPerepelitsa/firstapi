@@ -7,24 +7,11 @@ use Illuminate\Http\Request;
 use Stevebauman\Location\Facades\Location;
 use Jenssegers\Agent\Agent;
 use Auth;
-
+use Cookie;
 
 class StatService
 {
-    private $userIp;
-    public $userAgent;
-    public $position;
-    private $userData;
-
-    public function __construct()
-    {
-        $this->userIp = $this->getIpAddress();
-        $this->userAgent = $this->getUserAgentData();
-        $this->position = $this->getUserLocation($this->userIp);
-        $this->userData = $this->getUserData();
-    }
-
-    public function getIpAddress()
+    private function getIpAddress()
     {
         if (isset($_SERVER['HTTP_X_FORWARDED_FOR'])) {
             $ipAddresses = explode(',', $_SERVER['HTTP_X_FORWARDED_FOR']);
@@ -35,7 +22,7 @@ class StatService
         }
     }
 
-    public function getUserLocation($ip)
+    private function getUserLocation($ip)
     {
         $position = Location::get($ip); //https://github.com/stevebauman/location
 
@@ -55,7 +42,7 @@ class StatService
         ];
     }
 
-    public function getUserAgentData()
+    private function getUserAgentData()
     {
         $agent = new Agent(); //https://github.com/jenssegers/agent
         $browser = $agent->browser();
@@ -71,16 +58,16 @@ class StatService
         ];
     }
 
-    public function getUserData()
+    private function getUserData()
     {
-        $userIp = $this->userIp;
-        $userAgent = $this->userAgent;
-        $position = $this->position;
+        $userIp = $this->getIpAddress();
+        $userAgent = $this->getUserAgentData();
+        $position = $this->getUserLocation($userIp);
 
         $mainUserData = [
             'ip' => $userIp,
             'previous_page'=> \Request::server('HTTP_REFERER') ?? '',
-            'visited_at' => date('Y-m-d H:i:s A'),
+            'visited_at' => time(),
         ];
 
         $userData = array_merge($mainUserData, $userAgent, $position);
@@ -90,7 +77,7 @@ class StatService
 
     public function saveUserData($userId)
     {
-        $userData = $this->userData;
+        $userData = $this->getUserData();
         $userStat = new UserStat();
         $userStat->user_id = $userId;
         $userStat->temp_user_id = null;
@@ -110,7 +97,7 @@ class StatService
 
     public function saveTempUserData($tempUserId)
     {
-        $userData = $this->userData;
+        $userData = $this->getUserData();
         $userStat = new UserStat();
         $userStat->user_id = null;
         $userStat->temp_user_id = $tempUserId;
@@ -126,5 +113,22 @@ class StatService
         $userStat->visited_at = $userData['visited_at'];
 
         return $userStat->save() ? $userData : null;
+    }
+
+    public function rewriteStatAfterLogin($request, $userId)
+    {
+        $result = false;
+        if ($request->hasCookie('temp_user')) {
+            $tempUserId = $request->cookie('temp_user');
+            $result = UserStat::where('temp_user_id', $tempUserId )->update(['user_id' => $userId, 'temp_user_id' => null]);
+        }
+
+        return $result;
+    }
+
+    public function clearOldStat()
+    {
+        $weekAgo = strtotime("-1 week");
+        UserStat::whereNotNull('temp_user_id')->where('visited_at', '<=', $weekAgo)->delete();
     }
 }
