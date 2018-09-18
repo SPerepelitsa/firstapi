@@ -115,15 +115,11 @@ class StatService
         return $userStat->save() ? $userData : null;
     }
 
-    public function rewriteStatAfterLogin($request, $userId)
+    public function rewriteStatAfterLogin($userId, $tempUserId)
     {
-        $result = false;
-        if ($request->hasCookie('temp_user')) {
-            $tempUserId = $request->cookie('temp_user');
-            $result = UserStat::where('temp_user_id', $tempUserId )->update(['user_id' => $userId, 'temp_user_id' => null]);
-        }
+        $result = UserStat::where('temp_user_id', $tempUserId )->update(['user_id' => $userId, 'temp_user_id' => null]);
 
-        return $result;
+        return $result ?: false;
     }
 
     public function clearOldStat()

@@ -24,7 +24,8 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-         $schedule->command('stat:clear-old')->everyMinute()->appendOutputTo(storage_path('logs/mylog.log'));
+         $schedule->command('stat:clear-old')->weekly()->appendOutputTo(storage_path('logs/clear_old_stat.log'));
+         $schedule->command('stat:rewrite')->everyFiveMinutes()->appendOutputTo(storage_path('logs/rewrite_stat.log'));
     }
 
     /**
