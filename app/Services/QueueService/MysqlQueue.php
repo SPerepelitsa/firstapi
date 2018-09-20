@@ -16,9 +16,13 @@ private const QUEUE_TABLE = 'queues';
         $this->queueName = $queueName;
     }
 
+    /**
+     * @param array $message
+     *
+     * @return bool
+     */
     public function insertQueueMessage(array $message): bool
     {
-
         return DB::table(self::QUEUE_TABLE)
             ->insert(
                 [
@@ -32,20 +36,20 @@ private const QUEUE_TABLE = 'queues';
 
     public function getQueueMessage()
     {
-        $message = DB::table(self::QUEUE_TABLE)
+        $queue = DB::table(self::QUEUE_TABLE)
             ->select(['id', 'message'])
             ->where('queue_name', $this->queueName)
             ->where('in_progress', 0)
             ->first();
-        if (!$message) {
+        if (!$queue) {
             return null;
         }
 
-        DB::table(self::QUEUE_TABLE)->where('id', $message->id)->update([
+        DB::table(self::QUEUE_TABLE)->where('id', $queue->id)->update([
             'in_progress' => 1,
             'updated_at'  => date('Y-m-d H:i:s')
         ]);
 
-        return json_decode($message->message);
+        return json_decode($queue->message);
     }
 }

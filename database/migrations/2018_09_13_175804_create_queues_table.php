@@ -18,8 +18,8 @@ class CreateQueuesTable extends Migration
             $table->string('queue_name');
             $table->json('message');
             $table->boolean('in_progress')->default(0);
-            $table->string('created_at');
-            $table->string('updated_at');
+            $table->dateTime('created_at');
+            $table->dateTime('updated_at');
         });
     }
 

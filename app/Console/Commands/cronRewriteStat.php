@@ -39,10 +39,10 @@ class cronRewriteStat extends Command
      */
     public function handle()
     {
-        $message = (new MysqlQueue('stat_queue'))->getQueueMessage();
-        if ($message) {
-                $statService = new StatService();
-                $statService->rewriteStatAfterLogin($message->user_id, $message->temp_user_id);
+        $mysqlQueue = new MysqlQueue('stat_queue');
+        $statService = new StatService();
+        while ($message = $mysqlQueue->getQueueMessage()) {
+            $statService->rewriteStatAfterLogin($message->user_id, $message->temp_user_id);
         }
     }
 }

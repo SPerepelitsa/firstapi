@@ -117,9 +117,7 @@ class StatService
 
     public function rewriteStatAfterLogin($userId, $tempUserId)
     {
-        $result = UserStat::where('temp_user_id', $tempUserId )->update(['user_id' => $userId, 'temp_user_id' => null]);
-
-        return $result ?: false;
+        return UserStat::where('temp_user_id', $tempUserId )->update(['user_id' => $userId, 'temp_user_id' => null]);
     }
 
     public function clearOldStat()
