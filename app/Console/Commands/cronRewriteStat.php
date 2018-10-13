@@ -42,7 +42,9 @@ class cronRewriteStat extends Command
         $mysqlQueue = new MysqlQueue('stat_queue');
         $statService = new StatService();
         while ($message = $mysqlQueue->getQueueMessage()) {
-            $statService->rewriteStatAfterLogin($message->user_id, $message->temp_user_id);
+            var_dump($message->getMessageId());
+            $statService->rewriteStatAfterLogin($message->getUserId(), $message->getTempUserId());
+            $mysqlQueue->deleteCompletedQueues($message->getMessageId());
         }
     }
 }

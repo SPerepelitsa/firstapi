@@ -4,10 +4,11 @@ namespace App\Services\QueueService;
 
 use App\Services\QueueService\QueueInterfaces\StatQueueInterface;
 use DB;
+use App\Services\QueueService\Message;
 
 class MysqlQueue implements StatQueueInterface
 {
-private const QUEUE_TABLE = 'queues';
+    private const QUEUE_TABLE = 'queues';
 
     private $queueName;
 
@@ -36,20 +37,28 @@ private const QUEUE_TABLE = 'queues';
 
     public function getQueueMessage()
     {
-        $queue = DB::table(self::QUEUE_TABLE)
+        DB::beginTransaction();
+        $row = DB::table(self::QUEUE_TABLE)
             ->select(['id', 'message'])
             ->where('queue_name', $this->queueName)
             ->where('in_progress', 0)
+            ->lockForUpdate()
             ->first();
-        if (!$queue) {
+        if (!$row) {
             return null;
         }
-
-        DB::table(self::QUEUE_TABLE)->where('id', $queue->id)->update([
+        
+        DB::table(self::QUEUE_TABLE)->where('id', $row->id)->update([
             'in_progress' => 1,
             'updated_at'  => date('Y-m-d H:i:s')
         ]);
+        DB::commit();
 
-        return json_decode($queue->message);
+        return new Message($row->id, $row->message);
     }
+    
+    public function deleteCompletedQueues($rowId)
+    {
+        DB::table(self::QUEUE_TABLE)->where('id', $rowId)->delete();
+    }    
 }
